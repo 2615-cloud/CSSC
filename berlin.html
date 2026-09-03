@@ -2,89 +2,98 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>中鋼構油漆庫存表</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f6f9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 12px; background-color: #f0f2f5; color: #333; }
         
         /* 頂部導覽列 */
-        .header { display: flex; justify-content: space-between; align-items: center; background: #003366; color: white; padding: 15px 25px; border-radius: 8px 8px 0 0; }
-        .header h1 { margin: 0; font-size: 22px; }
-        .menu-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; padding: 0 5px; }
-        .menu-btn:hover { color: #ffc107; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,51,102,0.15); }
+        .header h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+        .menu-btn { background: rgba(255,255,255,0.15); border: none; color: white; font-size: 22px; cursor: pointer; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .menu-btn:active { background: rgba(255,255,255,0.3); }
 
         /* 警示橫幅區域 */
-        .alert-banner { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px 20px; border-radius: 0 0 8px 8px; margin-bottom: 20px; display: none; }
-        .alert-banner h4 { margin: 0 0 5px 0; font-size: 16px; display: flex; align-items: center; gap: 6px; }
-        .alert-banner ul { margin: 0; padding-left: 20px; font-size: 14px; }
+        .alert-banner { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; padding: 12px 16px; border-radius: 10px; margin: 12px 0; display: none; box-shadow: 0 2px 6px rgba(255,77,79,0.08); }
+        .alert-banner h4 { margin: 0 0 6px 0; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+        .alert-banner ul { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.6; }
 
-        /* 表格樣式 */
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: center; }
-        th { background-color: #004080; color: white; font-weight: normal; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
+        /* 手機卡片式佈局 (Mobile Card View) */
+        .card-container { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+        .paint-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #00509e; }
+        .paint-card.alert-card { border-left-color: #ff4d4f; }
+        .card-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px; }
+        .card-title { font-size: 17px; font-weight: bold; color: #111; }
+        .card-category { font-size: 12px; background: #e6f7ff; color: #1890ff; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+        
+        .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 13px; margin-bottom: 12px; }
+        .grid-item { display: flex; flex-direction: column; }
+        .grid-label { color: #8c8c8c; font-size: 11px; margin-bottom: 2px; }
+        .grid-val { font-size: 15px; font-weight: 600; }
 
-        /* 狀態燈號標籤 */
-        .badge { padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block; }
-        .badge-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .badge-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; animation: blink 1.5s infinite; }
+        .card-actions { display: flex; gap: 8px; border-top: 1px solid #f0f0f0; padding-top: 10px; }
+        .card-actions .btn { flex: 1; padding: 8px 0; text-align: center; font-size: 13px; margin: 0; }
 
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        /* 電腦表格佈局 (預設隱藏，電腦版開啟) */
+        .desktop-table { display: none; width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-top: 12px; }
+        .desktop-table th, .desktop-table td { border: 1px solid #f0f0f0; padding: 12px; text-align: center; }
+        .desktop-table th { background-color: #003366; color: white; font-weight: 500; }
 
-        /* 按鈕樣式 */
-        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin: 2px; }
-        .btn-check { background-color: #28a745; color: white; }
-        .btn-edit { background-color: #ffc107; color: black; }
-        .btn-delete { background-color: #dc3545; color: white; }
-        .btn-submit { background-color: #003366; color: white; width: 100%; padding: 10px; font-size: 16px; margin-top: 10px; }
+        /* 標籤與按鈕 */
+        .badge { padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 11px; display: inline-block; }
+        .badge-success { background-color: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+        .badge-danger { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
 
-        /* 彈出視窗 (Modal) */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-        .modal { background: white; padding: 25px; border-radius: 8px; width: 380px; max-width: 90%; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 15px; }
-        .modal-header h3 { margin: 0; color: #003366; }
-        .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
+        .btn { border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+        .btn:active { opacity: 0.8; }
+        .btn-check { background-color: #52c41a; color: white; }
+        .btn-edit { background-color: #faad14; color: white; }
+        .btn-delete { background-color: #ff4d4f; color: white; }
+        .btn-submit { background-color: #003366; color: white; width: 100%; padding: 12px; font-size: 15px; margin-top: 12px; }
 
-        /* 表單控制 */
+        /* 彈出視窗 Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); justify-content: center; align-items: flex-end; z-index: 1000; }
+        .modal { background: white; padding: 20px; border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; box-shadow: 0 -4px 16px rgba(0,0,0,0.15); animation: slideUp 0.25s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 16px; }
+        .modal-header h3 { margin: 0; color: #003366; font-size: 17px; }
+        .close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #999; }
+
         .form-group { margin-bottom: 12px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: #444; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; }
+
+        .empty-tip { text-align: center; color: #8c8c8c; padding: 40px 20px; background: white; border-radius: 12px; margin-top: 12px; font-size: 14px; }
+
+        /* RWD 螢幕斷點轉換：電腦版自動變回表格 */
+        @media (min-width: 768px) {
+            body { padding: 24px; max-width: 1100px; margin: 0 auto; }
+            .card-container { display: none; }
+            .desktop-table { display: table; }
+            .modal-overlay { align-items: center; }
+            .modal { border-radius: 12px; }
+        }
     </style>
 </head>
 <body>
 
+    <!-- 頂部列 -->
     <div class="header">
         <h1>中鋼構油漆庫存表</h1>
         <button class="menu-btn" onclick="openModal()" title="進貨登記">☰</button>
     </div>
 
+    <!-- 庫存偏低警示區 -->
     <div class="alert-banner" id="alertBanner">
         <h4>🚨 庫存偏低警告（建議補貨）</h4>
         <ul id="alertList"></ul>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>油漆種類</th>
-                <th>油漆品項</th>
-                <th>最新進貨日期</th>
-                <th>進貨總量 (A)</th>
-                <th>現場實點剩餘 (B)</th>
-                <th>狀態門檻</th>
-                <th>自動計算使用量 (A - B)</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody id="inventoryTable">
-            </tbody>
-    </table>
+    <!-- 內容展示區（手機顯示卡片、電腦顯示表格） -->
+    <div id="contentArea"></div>
 
+    <!-- 進貨彈出視窗 -->
     <div class="modal-overlay" id="inboundModal">
         <div class="modal">
             <div class="modal-header">
@@ -109,8 +118,8 @@
                     <input type="number" id="inQty" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>安全庫存警戒值 (低於此數量提醒)</label>
-                    <input type="number" id="minQty" min="0" value="10" placeholder="預設 10" required>
+                    <label>安全庫存警戒值</label>
+                    <input type="number" id="minQty" min="0" value="10" required>
                 </div>
                 <button type="submit" class="btn btn-submit">確認進貨並更新庫存</button>
             </form>
@@ -119,16 +128,10 @@
 
     <script>
         let inventory = JSON.parse(localStorage.getItem('cscPaintInventory')) || [];
-
         document.getElementById('inDate').valueAsDate = new Date();
 
-        function openModal() {
-            document.getElementById('inboundModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('inboundModal').style.display = 'none';
-        }
+        function openModal() { document.getElementById('inboundModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('inboundModal').style.display = 'none'; }
 
         function saveData() {
             localStorage.setItem('cscPaintInventory', JSON.stringify(inventory));
@@ -136,55 +139,115 @@
         }
 
         function render() {
-            const tbody = document.getElementById('inventoryTable');
+            const contentArea = document.getElementById('contentArea');
             const alertBanner = document.getElementById('alertBanner');
             const alertList = document.getElementById('alertList');
             
-            tbody.innerHTML = '';
+            contentArea.innerHTML = '';
             alertList.innerHTML = '';
             let lowStockItems = [];
 
             if (inventory.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="color: #888;">目前尚無庫存資料，請點擊右上角「☰」新增進貨。</td></tr>`;
+                contentArea.innerHTML = `<div class="empty-tip">目前尚無庫存資料<br>請點擊右上角「<b>☰</b>」新增進貨</div>`;
                 alertBanner.style.display = 'none';
                 return;
             }
 
+            // 手機版卡片容器與電腦版表格
+            const cardContainer = document.createElement('div');
+            cardContainer.className = 'card-container';
+
+            const table = document.createElement('table');
+            table.className = 'desktop-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>油漆種類</th>
+                        <th>油漆品項</th>
+                        <th>最新進貨日期</th>
+                        <th>進貨總量 (A)</th>
+                        <th>現場實點剩餘 (B)</th>
+                        <th>狀態門檻</th>
+                        <th>自動計算使用量 (A - B)</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="desktopTbody"></tbody>
+            `;
+            
+            const desktopTbody = table.querySelector('#desktopTbody');
+
             inventory.forEach((item, index) => {
-                // 預設 minStock 門檻為 10
                 const threshold = item.minStock !== undefined ? item.minStock : 10;
                 const isLow = item.currentStock <= threshold;
+                const used = item.totalIn - item.currentStock;
 
                 if (isLow) {
                     lowStockItems.push(`【${item.category} - ${item.name}】剩餘 <b>${item.currentStock}</b> (警戒線：${threshold})`);
                 }
 
-                const used = item.totalIn - item.currentStock;
-                const tr = document.createElement('tr');
-                
-                // 狀態燈號標籤
-                const statusBadge = isLow 
+                const badgeHtml = isLow 
                     ? `<span class="badge badge-danger">🔴 偏低 (${item.currentStock}/${threshold})</span>`
                     : `<span class="badge badge-success">🟢 正常</span>`;
 
+                // 1. 生成手機版卡片 HTML
+                const card = document.createElement('div');
+                card.className = `paint-card ${isLow ? 'alert-card' : ''}`;
+                card.innerHTML = `
+                    <div class="card-header-row">
+                        <span class="card-title">${item.name}</span>
+                        <span class="card-category">種類: ${item.category}</span>
+                    </div>
+                    <div class="card-grid">
+                        <div class="grid-item">
+                            <span class="grid-label">現場實點剩餘 (B)</span>
+                            <span class="grid-val" style="color: ${isLow ? '#ff4d4f' : '#52c41a'}">${item.currentStock}</span>
+                        </div>
+                        <div class="grid-item">
+                            <span class="grid-label">狀態門檻</span>
+                            <div>${badgeHtml}</div>
+                        </div>
+                        <div class="grid-item">
+                            <span class="grid-label">進貨總量 (A)</span>
+                            <span class="grid-val">${item.totalIn}</span>
+                        </div>
+                        <div class="grid-item">
+                            <span class="grid-label">已使用量 (A-B)</span>
+                            <span class="grid-val" style="color: #ff4d4f">${used < 0 ? '異常' : used}</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; color: #8c8c8c; margin-bottom: 8px;">最新進貨日期：${item.lastInDate}</div>
+                    <div class="card-actions">
+                        <button class="btn btn-check" onclick="updateStock(${index})">清點</button>
+                        <button class="btn btn-edit" onclick="editItem(${index})">修改</button>
+                        <button class="btn btn-delete" onclick="deleteItem(${index})">刪除</button>
+                    </div>
+                `;
+                cardContainer.appendChild(card);
+
+                // 2. 生成電腦版表格列 HTML
+                const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.category}</td>
                     <td><b>${item.name}</b></td>
                     <td>${item.lastInDate}</td>
                     <td>${item.totalIn}</td>
                     <td style="color: ${isLow ? 'red' : 'green'}; font-weight: bold;">${item.currentStock}</td>
-                    <td>${statusBadge}</td>
+                    <td>${badgeHtml}</td>
                     <td style="color: red; font-weight: bold;">${used < 0 ? '盤點異常' : used}</td>
                     <td>
-                        <button class="btn btn-check" onclick="updateStock(${index})">清點</button>
-                        <button class="btn btn-edit" onclick="editItem(${index})">修改</button>
-                        <button class="btn btn-delete" onclick="deleteItem(${index})">刪除</button>
+                        <button class="btn btn-check" style="padding:4px 8px" onclick="updateStock(${index})">清點</button>
+                        <button class="btn btn-edit" style="padding:4px 8px" onclick="editItem(${index})">修改</button>
+                        <button class="btn btn-delete" style="padding:4px 8px" onclick="deleteItem(${index})">刪除</button>
                     </td>
                 `;
-                tbody.appendChild(tr);
+                desktopTbody.appendChild(tr);
             });
 
-            // 處理標題下方提醒區塊
+            contentArea.appendChild(cardContainer);
+            contentArea.appendChild(table);
+
+            // 處理警示橫幅
             if (lowStockItems.length > 0) {
                 alertBanner.style.display = 'block';
                 lowStockItems.forEach(msg => {
@@ -197,10 +260,9 @@
             }
         }
 
-        // 進貨處理
+        // 表單提交與功能邏輯
         document.getElementById('inboundForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const category = document.getElementById('paintCategory').value.trim();
             const name = document.getElementById('paintName').value.trim();
             const date = document.getElementById('inDate').value;
@@ -215,15 +277,7 @@
                 existing.lastInDate = date;
                 existing.minStock = minQty;
             } else {
-                inventory.push({
-                    id: Date.now().toString(),
-                    category: category,
-                    name: name,
-                    lastInDate: date,
-                    totalIn: qty,
-                    currentStock: qty,
-                    minStock: minQty
-                });
+                inventory.push({ id: Date.now().toString(), category, name, lastInDate: date, totalIn: qty, currentStock: qty, minStock: minQty });
             }
 
             saveData();
@@ -233,35 +287,29 @@
             closeModal();
         });
 
-        // 現場清點 (點擊清點後會即時重新計算紅綠燈與警示橫幅)
         function updateStock(index) {
             const item = inventory[index];
-            const current = prompt(`請輸入「${item.category} - ${item.name}」目前的現場實際剩餘數量：`, item.currentStock);
+            const current = prompt(`請輸入「${item.category} - ${item.name}」現場實際剩餘數量：`, item.currentStock);
             if (current === null) return;
-
             const parsed = parseInt(current);
             if (!isNaN(parsed) && parsed >= 0) {
                 item.currentStock = parsed;
                 saveData();
             } else {
-                alert('請輸入正確的數字！');
+                alert('請輸入正確數字！');
             }
         }
 
-        // 修改品項與門檻
         function editItem(index) {
             const item = inventory[index];
             const newCat = prompt('修改油漆種類：', item.category);
-            if (newCat === null) return;
-
+            if (!newCat) return;
             const newName = prompt('修改油漆品項名稱：', item.name);
-            if (newName === null) return;
-
+            if (!newName) return;
             const newTotal = prompt('修改進貨總數量：', item.totalIn);
-            if (newTotal === null) return;
-
+            if (!newTotal) return;
             const newMin = prompt('修改安全庫存警戒門檻：', item.minStock || 10);
-            if (newMin === null) return;
+            if (!newMin) return;
 
             if (newCat.trim() && newName.trim() && !isNaN(parseInt(newTotal)) && !isNaN(parseInt(newMin))) {
                 item.category = newCat.trim();
