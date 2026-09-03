@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中鋼構油漆庫存表</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f6f9; }
+        
+        /* 頂部導覽列 */
+        .header { display: flex; justify-content: space-between; align-items: center; background: #003366; color: white; padding: 15px 25px; border-radius: 8px 8px 0 0; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .menu-btn { background: none; border: none; color: white; font-size: 26px; cursor: pointer; padding: 0 5px; }
+        .menu-btn:hover { color: #ffc107; }
+
+        /* 警示橫幅區域 */
+        .alert-banner { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px 20px; border-radius: 0 0 8px 8px; margin-bottom: 20px; display: none; }
+        .alert-banner h4 { margin: 0 0 5px 0; font-size: 16px; display: flex; align-items: center; gap: 6px; }
+        .alert-banner ul { margin: 0; padding-left: 20px; font-size: 14px; }
+
+        /* 表格樣式 */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: center; }
+        th { background-color: #004080; color: white; font-weight: normal; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+
+        /* 狀態燈號標籤 */
+        .badge { padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; display: inline-block; }
+        .badge-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; animation: blink 1.5s infinite; }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* 按鈕樣式 */
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin: 2px; }
+        .btn-check { background-color: #28a745; color: white; }
+        .btn-edit { background-color: #ffc107; color: black; }
+        .btn-delete { background-color: #dc3545; color: white; }
+        .btn-submit { background-color: #003366; color: white; width: 100%; padding: 10px; font-size: 16px; margin-top: 10px; }
+
+        /* 彈出視窗 (Modal) */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: white; padding: 25px; border-radius: 8px; width: 380px; max-width: 90%; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 15px; }
+        .modal-header h3 { margin: 0; color: #003366; }
+        .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; }
+
+        /* 表單控制 */
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>中鋼構油漆庫存表</h1>
+        <button class="menu-btn" onclick="openModal()" title="進貨登記">☰</button>
+    </div>
+
+    <div class="alert-banner" id="alertBanner">
+        <h4>🚨 庫存偏低警告（建議補貨）</h4>
+        <ul id="alertList"></ul>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>油漆種類</th>
+                <th>油漆品項</th>
+                <th>最新進貨日期</th>
+                <th>進貨總量 (A)</th>
+                <th>現場實點剩餘 (B)</th>
+                <th>狀態門檻</th>
+                <th>自動計算使用量 (A - B)</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="inventoryTable">
+            </tbody>
+    </table>
+
+    <div class="modal-overlay" id="inboundModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📦 油漆進貨登記</h3>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <form id="inboundForm">
+                <div class="form-group">
+                    <label>油漆種類</label>
+                    <input type="text" id="paintCategory" placeholder="例如：11" required>
+                </div>
+                <div class="form-group">
+                    <label>油漆品項/型號</label>
+                    <input type="text" id="paintName" placeholder="例如：AA" required>
+                </div>
+                <div class="form-group">
+                    <label>進貨日期</label>
+                    <input type="date" id="inDate" required>
+                </div>
+                <div class="form-group">
+                    <label>進貨數量 (桶/罐)</label>
+                    <input type="number" id="inQty" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>安全庫存警戒值 (低於此數量提醒)</label>
+                    <input type="number" id="minQty" min="0" value="10" placeholder="預設 10" required>
+                </div>
+                <button type="submit" class="btn btn-submit">確認進貨並更新庫存</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let inventory = JSON.parse(localStorage.getItem('cscPaintInventory')) || [];
+
+        document.getElementById('inDate').valueAsDate = new Date();
+
+        function openModal() {
+            document.getElementById('inboundModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('inboundModal').style.display = 'none';
+        }
+
+        function saveData() {
+            localStorage.setItem('cscPaintInventory', JSON.stringify(inventory));
+            render();
+        }
+
+        function render() {
+            const tbody = document.getElementById('inventoryTable');
+            const alertBanner = document.getElementById('alertBanner');
+            const alertList = document.getElementById('alertList');
+            
+            tbody.innerHTML = '';
+            alertList.innerHTML = '';
+            let lowStockItems = [];
+
+            if (inventory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="color: #888;">目前尚無庫存資料，請點擊右上角「☰」新增進貨。</td></tr>`;
+                alertBanner.style.display = 'none';
+                return;
+            }
+
+            inventory.forEach((item, index) => {
+                // 預設 minStock 門檻為 10
+                const threshold = item.minStock !== undefined ? item.minStock : 10;
+                const isLow = item.currentStock <= threshold;
+
+                if (isLow) {
+                    lowStockItems.push(`【${item.category} - ${item.name}】剩餘 <b>${item.currentStock}</b> (警戒線：${threshold})`);
+                }
+
+                const used = item.totalIn - item.currentStock;
+                const tr = document.createElement('tr');
+                
+                // 狀態燈號標籤
+                const statusBadge = isLow 
+                    ? `<span class="badge badge-danger">🔴 偏低 (${item.currentStock}/${threshold})</span>`
+                    : `<span class="badge badge-success">🟢 正常</span>`;
+
+                tr.innerHTML = `
+                    <td>${item.category}</td>
+                    <td><b>${item.name}</b></td>
+                    <td>${item.lastInDate}</td>
+                    <td>${item.totalIn}</td>
+                    <td style="color: ${isLow ? 'red' : 'green'}; font-weight: bold;">${item.currentStock}</td>
+                    <td>${statusBadge}</td>
+                    <td style="color: red; font-weight: bold;">${used < 0 ? '盤點異常' : used}</td>
+                    <td>
+                        <button class="btn btn-check" onclick="updateStock(${index})">清點</button>
+                        <button class="btn btn-edit" onclick="editItem(${index})">修改</button>
+                        <button class="btn btn-delete" onclick="deleteItem(${index})">刪除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // 處理標題下方提醒區塊
+            if (lowStockItems.length > 0) {
+                alertBanner.style.display = 'block';
+                lowStockItems.forEach(msg => {
+                    const li = document.createElement('li');
+                    li.innerHTML = msg;
+                    alertList.appendChild(li);
+                });
+            } else {
+                alertBanner.style.display = 'none';
+            }
+        }
+
+        // 進貨處理
+        document.getElementById('inboundForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const category = document.getElementById('paintCategory').value.trim();
+            const name = document.getElementById('paintName').value.trim();
+            const date = document.getElementById('inDate').value;
+            const qty = parseInt(document.getElementById('inQty').value);
+            const minQty = parseInt(document.getElementById('minQty').value);
+
+            const existing = inventory.find(i => i.name === name && i.category === category);
+
+            if (existing) {
+                existing.totalIn += qty;
+                existing.currentStock += qty;
+                existing.lastInDate = date;
+                existing.minStock = minQty;
+            } else {
+                inventory.push({
+                    id: Date.now().toString(),
+                    category: category,
+                    name: name,
+                    lastInDate: date,
+                    totalIn: qty,
+                    currentStock: qty,
+                    minStock: minQty
+                });
+            }
+
+            saveData();
+            this.reset();
+            document.getElementById('inDate').valueAsDate = new Date();
+            document.getElementById('minQty').value = 10;
+            closeModal();
+        });
+
+        // 現場清點 (點擊清點後會即時重新計算紅綠燈與警示橫幅)
+        function updateStock(index) {
+            const item = inventory[index];
+            const current = prompt(`請輸入「${item.category} - ${item.name}」目前的現場實際剩餘數量：`, item.currentStock);
+            if (current === null) return;
+
+            const parsed = parseInt(current);
+            if (!isNaN(parsed) && parsed >= 0) {
+                item.currentStock = parsed;
+                saveData();
+            } else {
+                alert('請輸入正確的數字！');
+            }
+        }
+
+        // 修改品項與門檻
+        function editItem(index) {
+            const item = inventory[index];
+            const newCat = prompt('修改油漆種類：', item.category);
+            if (newCat === null) return;
+
+            const newName = prompt('修改油漆品項名稱：', item.name);
+            if (newName === null) return;
+
+            const newTotal = prompt('修改進貨總數量：', item.totalIn);
+            if (newTotal === null) return;
+
+            const newMin = prompt('修改安全庫存警戒門檻：', item.minStock || 10);
+            if (newMin === null) return;
+
+            if (newCat.trim() && newName.trim() && !isNaN(parseInt(newTotal)) && !isNaN(parseInt(newMin))) {
+                item.category = newCat.trim();
+                item.name = newName.trim();
+                item.totalIn = parseInt(newTotal);
+                item.minStock = parseInt(newMin);
+                saveData();
+            }
+        }
+
+        function deleteItem(index) {
+            if (confirm(`確定要刪除「${inventory[index].name}」嗎？`)) {
+                inventory.splice(index, 1);
+                saveData();
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
