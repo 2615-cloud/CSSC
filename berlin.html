@@ -168,11 +168,29 @@
             document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            if (dateStr.includes('T')) return dateStr.split('T')[0];
-            return dateStr;
-        }
+        // 修正後的日期處理函式：避免時區少一天
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    
+    // 如果是 Date 物件，轉為本地時區的 YYYY-MM-DD
+    if (dateStr instanceof Date) {
+        const y = dateStr.getFullYear();
+        const m = String(dateStr.getMonth() + 1).padStart(2, '0');
+        const d = String(dateStr.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    
+    // 如果包含 T (例如 2026-09-03T00:00:00.000Z)，先轉為 Date 物件再取本地日期
+    if (typeof dateStr === 'string' && dateStr.includes('T')) {
+        const d = new Date(dateStr);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+    
+    return String(dateStr).split('T')[0];
+}
 
         function loadFromCloud() {
             showLoading(true);
