@@ -59,7 +59,7 @@
         .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: #444; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; }
 
-        .loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); display:flex; justify-content:center; align-items:center; font-weight:bold; color:#003366; z-index:2000; }
+        .loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.85); display:flex; justify-content:center; align-items:center; font-weight:bold; color:#003366; z-index:2000; }
 
         @media (min-width: 768px) {
             body { padding: 24px; max-width: 1100px; margin: 0 auto; }
@@ -72,7 +72,7 @@
 </head>
 <body>
 
-    <div id="loading" class="loading-mask">☁️ 雲端資料同步中...</div>
+    <div id="loading" class="loading-mask">☁️ 雲端庫存資料同步中...</div>
 
     <div class="header">
         <h1>中鋼構油漆庫存表</h1>
@@ -154,7 +154,7 @@
     </div>
 
     <script>
-        // ⚠️ 請填入您第一步取得的 Google Apps Script 部署 URL
+        // 填入您的 Apps Script API 網址 (僅需填一次)
         const GOOGLE_SCRIPT_URL = "https://script.google.com/a/macros/berlin.com.tw/s/AKfycby3OvhnMaeEQX1uHcogW99zIOA9YCWWhdUDEsPi6dDc-lBPa0xNpSxIc92doeHgS86GmA/exec";
 
         let inventory = [];
@@ -167,12 +167,13 @@
             document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
-        // 從 Google Sheets 抓取最新資料
-        async function loadFromCloud() {
+        // 使用 JSONP 穿透 CROS 讀取資料
+        function loadFromCloud() {
             showLoading(true);
-            try {
-                const res = await fetch(GOOGLE_SCRIPT_URL);
-                const data = await res.json();
+            const script = document.createElement('script');
+            const callbackName = 'handleCloudData';
+            
+            window[callbackName] = function(data) {
                 inventory = data.map(item => ({
                     id: String(item.id),
                     category: item.category,
@@ -183,27 +184,37 @@
                     minStock: parseInt(item.minStock) || 10
                 }));
                 render();
-            } catch (err) {
-                alert('無法讀取雲端資料，請確認 API 網址是否正確');
-            } finally {
                 showLoading(false);
-            }
+                document.body.removeChild(script);
+            };
+
+            script.src = `${GOOGLE_SCRIPT_URL}?callback=${callbackName}&t=${Date.now()}`;
+            script.onerror = function() {
+                alert('雲端連線失敗，請檢查網路或權限');
+                showLoading(false);
+            };
+            document.body.appendChild(script);
         }
 
-        // 同步資料至 Google Sheets
-        async function syncToCloud() {
+        // 使用 JSONP 穿透 CROS 寫入/更新試算表
+        function syncToCloud() {
             showLoading(true);
-            try {
-                await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'sync', data: inventory })
-                });
-                render();
-            } catch (err) {
-                alert('雲端同步失敗！');
-            } finally {
+            const script = document.createElement('script');
+            const callbackName = 'handleSyncResult';
+            
+            window[callbackName] = function(res) {
                 showLoading(false);
-            }
+                document.body.removeChild(script);
+                loadFromCloud(); // 重新拉取確認
+            };
+
+            const jsonStr = encodeURIComponent(JSON.stringify(inventory));
+            script.src = `${GOOGLE_SCRIPT_URL}?action=sync&data=${jsonStr}&callback=${callbackName}&t=${Date.now()}`;
+            script.onerror = function() {
+                alert('更新至雲端失敗！');
+                showLoading(false);
+            };
+            document.body.appendChild(script);
         }
 
         function saveConfig() {
@@ -249,7 +260,7 @@
         }
 
         function manageBrands() {
-            const target = prompt(`目前品牌：\n${brands.join('、')}\n\n請輸入要刪除或修改的品牌名稱：`);
+            const target = prompt(`目前品牌：\n${brands.join('、')}\n\n請輸入要刪除的品牌名稱：`);
             if (!target) return;
             const idx = brands.indexOf(target.trim());
             if (idx !== -1 && confirm(`確定要刪除品牌「${brands[idx]}」嗎？`)) {
@@ -409,7 +420,6 @@
             }
         }
 
-        // 頁面開啟時自動拉取雲端資料
         loadFromCloud();
     </script>
 </body>
