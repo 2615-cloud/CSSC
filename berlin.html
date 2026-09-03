@@ -425,27 +425,37 @@ function formatDate(dateStr) {
             document.getElementById('editModal').style.display = 'flex';
         }
 
-        document.getElementById('editForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const index = document.getElementById('editIndex').value;
-            const newCat = document.getElementById('editCategory').value.trim();
-            const newName = document.getElementById('editName').value.trim();
+        // 修正後的修改表單提交事件
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const index = document.getElementById('editIndex').value;
+    const oldCat = inventory[index].category;
+    const oldName = inventory[index].name;
 
-            inventory[index].category = newCat;
-            inventory[index].name = newName;
-            inventory[index].lastInDate = document.getElementById('editInDate').value;
-            inventory[index].totalIn = parseInt(document.getElementById('editTotalIn').value);
-            inventory[index].currentStock = parseInt(document.getElementById('editCurrentStock').value);
-            inventory[index].minStock = parseInt(document.getElementById('editMinStock').value);
+    const newCat = document.getElementById('editCategory').value.trim();
+    const newName = document.getElementById('editName').value.trim();
 
-            if (!brands.includes(newCat)) brands.push(newCat);
-            models[newCat] = models[newCat] || [];
-            if (!models[newCat].includes(newName)) models[newCat].push(newName);
-            saveConfig();
+    // 1. 更新庫存陣列資料
+    inventory[index].category = newCat;
+    inventory[index].name = newName;
+    inventory[index].lastInDate = document.getElementById('editInDate').value;
+    inventory[index].totalIn = parseInt(document.getElementById('editTotalIn').value);
+    inventory[index].currentStock = parseInt(document.getElementById('editCurrentStock').value);
+    inventory[index].minStock = parseInt(document.getElementById('editMinStock').value);
 
-            syncToCloud(); 
-            closeModal('editModal');
-        });
+    // 2. 清理與更新下拉選單設定 (刪除舊名稱、加入新名稱)
+    if (models[oldCat]) {
+        models[oldCat] = models[oldCat].filter(m => m !== oldName);
+    }
+    
+    if (!brands.includes(newCat)) brands.push(newCat);
+    models[newCat] = models[newCat] || [];
+    if (!models[newCat].includes(newName)) models[newCat].push(newName);
+
+    saveConfig();
+    syncToCloud(); 
+    closeModal('editModal');
+});
 
         function updateStock(index) {
             const item = inventory[index];
