@@ -6,40 +6,34 @@
     <title>中鋼構油漆庫存表</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; padding: 12px; background-color: #f0f2f5; color: #333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 12px; background-color: #f0f2f5; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; }
+        .header h1 { margin: 0; font-size: 20px; }
+        .menu-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 22px; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; }
         
-        /* 頂部導覽列 */
-        .header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,51,102,0.15); }
-        .header h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
-        .menu-btn { background: rgba(255,255,255,0.15); border: none; color: white; font-size: 22px; cursor: pointer; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-
-        /* 警示橫幅區域 */
         .alert-banner { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; padding: 12px 16px; border-radius: 10px; margin: 12px 0; display: none; }
         .alert-banner h4 { margin: 0 0 6px 0; font-size: 15px; }
         .alert-banner ul { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.6; }
 
-        /* 手機卡片式佈局 */
         .card-container { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
-        .paint-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #00509e; }
+        .paint-card { background: white; border-radius: 12px; padding: 16px; border-left: 5px solid #00509e; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .paint-card.alert-card { border-left-color: #ff4d4f; }
         .card-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px; }
-        .card-title { font-size: 17px; font-weight: bold; color: #111; }
-        .card-category { font-size: 12px; background: #e6f7ff; color: #1890ff; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+        .card-title { font-size: 17px; font-weight: bold; }
+        .card-category { font-size: 12px; background: #e6f7ff; color: #1890ff; padding: 2px 8px; border-radius: 4px; }
         
         .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 13px; margin-bottom: 12px; }
         .grid-item { display: flex; flex-direction: column; }
-        .grid-label { color: #8c8c8c; font-size: 11px; margin-bottom: 2px; }
+        .grid-label { color: #8c8c8c; font-size: 11px; }
         .grid-val { font-size: 15px; font-weight: 600; }
 
         .card-actions { display: flex; gap: 8px; border-top: 1px solid #f0f0f0; padding-top: 10px; }
-        .card-actions .btn { flex: 1; padding: 8px 0; text-align: center; font-size: 13px; margin: 0; }
+        .card-actions .btn { flex: 1; padding: 8px 0; font-size: 13px; margin: 0; }
 
-        /* 電腦表格佈局 */
         .desktop-table { display: none; width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; margin-top: 12px; }
         .desktop-table th, .desktop-table td { border: 1px solid #f0f0f0; padding: 12px; text-align: center; }
-        .desktop-table th { background-color: #003366; color: white; font-weight: 500; }
+        .desktop-table th { background-color: #003366; color: white; }
 
-        /* 標籤與按鈕 */
         .badge { padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 11px; display: inline-block; }
         .badge-success { background-color: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
         .badge-danger { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
@@ -50,24 +44,22 @@
         .btn-delete { background-color: #ff4d4f; color: white; }
         .btn-submit { background-color: #003366; color: white; width: 100%; padding: 12px; font-size: 15px; margin-top: 12px; }
 
-        /* 下拉與＋按鈕組合列 */
         .select-group { display: flex; gap: 6px; }
         .select-group select { flex: 1; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; background: white; }
         .btn-add-opt { background: #1890ff; color: white; border: none; padding: 0 12px; border-radius: 6px; font-size: 18px; cursor: pointer; }
         .btn-manage-opt { background: #f0f0f0; color: #555; border: 1px solid #d9d9d9; padding: 0 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
 
-        /* 彈出視窗 Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); justify-content: center; align-items: flex-end; z-index: 1000; }
-        .modal { background: white; padding: 20px; border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; box-shadow: 0 -4px 16px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+        .modal { background: white; padding: 20px; border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 16px; }
-        .modal-header h3 { margin: 0; color: #003366; font-size: 17px; }
+        .modal-header h3 { margin: 0; color: #003366; }
         .close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #999; }
 
         .form-group { margin-bottom: 12px; text-align: left; }
         .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: #444; }
         .form-group input { width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; }
 
-        .empty-tip { text-align: center; color: #8c8c8c; padding: 40px 20px; background: white; border-radius: 12px; margin-top: 12px; font-size: 14px; }
+        .loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); display:flex; justify-content:center; align-items:center; font-weight:bold; color:#003366; z-index:2000; }
 
         @media (min-width: 768px) {
             body { padding: 24px; max-width: 1100px; margin: 0 auto; }
@@ -79,6 +71,8 @@
     </style>
 </head>
 <body>
+
+    <div id="loading" class="loading-mask">☁️ 雲端資料同步中...</div>
 
     <div class="header">
         <h1>中鋼構油漆庫存表</h1>
@@ -92,7 +86,7 @@
 
     <div id="contentArea"></div>
 
-    <!-- 1. 進貨彈出視窗 -->
+    <!-- 進貨 Modal -->
     <div class="modal-overlay" id="inboundModal">
         <div class="modal">
             <div class="modal-header">
@@ -100,27 +94,25 @@
                 <button class="close-btn" onclick="closeModal('inboundModal')">✕</button>
             </div>
             <form id="inboundForm">
-                <!-- 品牌選單 -->
                 <div class="form-group">
                     <label>品牌</label>
                     <div class="select-group">
                         <select id="paintBrandSelect" onchange="onBrandChange()" required>
                             <option value="">-- 請選擇品牌 --</option>
                         </select>
-                        <button type="button" class="btn-add-opt" onclick="addBrand()" title="新增品牌">＋</button>
-                        <button type="button" class="btn-manage-opt" onclick="manageBrands()" title="管理品牌">⚙️</button>
+                        <button type="button" class="btn-add-opt" onclick="addBrand()">＋</button>
+                        <button type="button" class="btn-manage-opt" onclick="manageBrands()">⚙️</button>
                     </div>
                 </div>
 
-                <!-- 油漆品項選單 -->
                 <div class="form-group">
                     <label>油漆品項/型號</label>
                     <div class="select-group">
                         <select id="paintNameSelect" required>
                             <option value="">-- 請先選擇品牌 --</option>
                         </select>
-                        <button type="button" class="btn-add-opt" onclick="addModel()" title="新增品項">＋</button>
-                        <button type="button" class="btn-manage-opt" onclick="manageModels()" title="管理品項">⚙️</button>
+                        <button type="button" class="btn-add-opt" onclick="addModel()">＋</button>
+                        <button type="button" class="btn-manage-opt" onclick="manageModels()">⚙️</button>
                     </div>
                 </div>
 
@@ -141,7 +133,7 @@
         </div>
     </div>
 
-    <!-- 2. 修改視窗 -->
+    <!-- 修改 Modal -->
     <div class="modal-overlay" id="editModal">
         <div class="modal">
             <div class="modal-header">
@@ -150,46 +142,69 @@
             </div>
             <form id="editForm">
                 <input type="hidden" id="editIndex">
-                <div class="form-group">
-                    <label>品牌</label>
-                    <input type="text" id="editCategory" required readonly style="background:#f5f5f5;">
-                </div>
-                <div class="form-group">
-                    <label>油漆品項/型號</label>
-                    <input type="text" id="editName" required readonly style="background:#f5f5f5;">
-                </div>
-                <div class="form-group">
-                    <label>最新進貨日期</label>
-                    <input type="date" id="editInDate" required>
-                </div>
-                <div class="form-group">
-                    <label>進貨總量 (A)</label>
-                    <input type="number" id="editTotalIn" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label>現場實點剩餘 (B)</label>
-                    <input type="number" id="editCurrentStock" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label>安全庫存警戒值</label>
-                    <input type="number" id="editMinStock" min="0" required>
-                </div>
+                <div class="form-group"><label>品牌</label><input type="text" id="editCategory" required readonly style="background:#f5f5f5;"></div>
+                <div class="form-group"><label>油漆品項/型號</label><input type="text" id="editName" required readonly style="background:#f5f5f5;"></div>
+                <div class="form-group"><label>最新進貨日期</label><input type="date" id="editInDate" required></div>
+                <div class="form-group"><label>進貨總量 (A)</label><input type="number" id="editTotalIn" min="0" required></div>
+                <div class="form-group"><label>現場實點剩餘 (B)</label><input type="number" id="editCurrentStock" min="0" required></div>
+                <div class="form-group"><label>安全庫存警戒值</label><input type="number" id="editMinStock" min="0" required></div>
                 <button type="submit" class="btn btn-submit" style="background-color: #faad14;">儲存修改內容</button>
             </form>
         </div>
     </div>
 
     <script>
-        // 資料載入
-        let inventory = JSON.parse(localStorage.getItem('cscPaintInventory')) || [];
+        // ⚠️ 請填入您第一步取得的 Google Apps Script 部署 URL
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/a/macros/berlin.com.tw/s/AKfycby3OvhnMaeEQX1uHcogW99zIOA9YCWWhdUDEsPi6dDc-lBPa0xNpSxIc92doeHgS86GmA/exec";
+
+        let inventory = [];
         let brands = JSON.parse(localStorage.getItem('cscPaintBrands')) || ['柏林', '虹牌', '立邦'];
-        let models = JSON.parse(localStorage.getItem('cscPaintModels')) || {
-            '柏林': ['棕A', '深灰'],
-            '虹牌': ['永保新防銹漆'],
-            '立邦': ['白乳膠漆']
-        };
+        let models = JSON.parse(localStorage.getItem('cscPaintModels')) || { '柏林': ['棕A', '深灰'], '虹牌': ['永保新防銹漆'], '立邦': ['白乳膠漆'] };
 
         document.getElementById('inDate').valueAsDate = new Date();
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        // 從 Google Sheets 抓取最新資料
+        async function loadFromCloud() {
+            showLoading(true);
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await res.json();
+                inventory = data.map(item => ({
+                    id: String(item.id),
+                    category: item.category,
+                    name: item.name,
+                    lastInDate: item.lastInDate,
+                    totalIn: parseInt(item.totalIn) || 0,
+                    currentStock: parseInt(item.currentStock) || 0,
+                    minStock: parseInt(item.minStock) || 10
+                }));
+                render();
+            } catch (err) {
+                alert('無法讀取雲端資料，請確認 API 網址是否正確');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 同步資料至 Google Sheets
+        async function syncToCloud() {
+            showLoading(true);
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'sync', data: inventory })
+                });
+                render();
+            } catch (err) {
+                alert('雲端同步失敗！');
+            } finally {
+                showLoading(false);
+            }
+        }
 
         function saveConfig() {
             localStorage.setItem('cscPaintBrands', JSON.stringify(brands));
@@ -197,48 +212,28 @@
             renderBrandOptions();
         }
 
-        function saveData() {
-            localStorage.setItem('cscPaintInventory', JSON.stringify(inventory));
-            render();
-        }
+        function openInboundModal() { renderBrandOptions(); document.getElementById('inboundModal').style.display = 'flex'; }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
-        function openInboundModal() { 
-            renderBrandOptions();
-            document.getElementById('inboundModal').style.display = 'flex'; 
-        }
-
-        function closeModal(modalId) { 
-            document.getElementById(modalId).style.display = 'none'; 
-        }
-
-        // 渲染品牌選單
         function renderBrandOptions() {
             const bSelect = document.getElementById('paintBrandSelect');
             bSelect.innerHTML = '<option value="">-- 請選擇品牌 --</option>';
-            brands.forEach(b => {
-                bSelect.innerHTML += `<option value="${b}">${b}</option>`;
-            });
+            brands.forEach(b => bSelect.innerHTML += `<option value="${b}">${b}</option>`);
             onBrandChange();
         }
 
-        // 切換品牌時更新型號下拉選單
         function onBrandChange() {
             const bVal = document.getElementById('paintBrandSelect').value;
             const mSelect = document.getElementById('paintNameSelect');
             mSelect.innerHTML = '';
-
             if (!bVal || !models[bVal] || models[bVal].length === 0) {
-                mSelect.innerHTML = '<option value="">-- 請先選擇品牌或點擊＋新增型號 --</option>';
+                mSelect.innerHTML = '<option value="">-- 請先選擇品牌 --</option>';
                 return;
             }
-
             mSelect.innerHTML = '<option value="">-- 請選擇品項 --</option>';
-            models[bVal].forEach(m => {
-                mSelect.innerHTML += `<option value="${m}">${m}</option>`;
-            });
+            models[bVal].forEach(m => mSelect.innerHTML += `<option value="${m}">${m}</option>`);
         }
 
-        // 新增品牌
         function addBrand() {
             const newB = prompt('請輸入新品牌名稱：');
             if (newB && newB.trim()) {
@@ -249,127 +244,67 @@
                     saveConfig();
                     document.getElementById('paintBrandSelect').value = name;
                     onBrandChange();
-                } else {
-                    alert('品牌已存在！');
                 }
             }
         }
 
-        // 管理/刪除品牌
         function manageBrands() {
-            if (brands.length === 0) return alert('目前沒有品牌可管理');
-            const target = prompt(`目前品牌列表：\n${brands.join('、')}\n\n請輸入要修改或刪除的品牌名稱：`);
+            const target = prompt(`目前品牌：\n${brands.join('、')}\n\n請輸入要刪除或修改的品牌名稱：`);
             if (!target) return;
-
             const idx = brands.indexOf(target.trim());
-            if (idx === -1) return alert('找不到該品牌！');
-
-            const act = prompt(`針對品牌「${brands[idx]}」，請選擇操作：\n1. 修改名稱\n2. 刪除品牌`);
-            if (act === '1') {
-                const newName = prompt('請輸入新名稱：', brands[idx]);
-                if (newName && newName.trim()) {
-                    models[newName.trim()] = models[brands[idx]];
-                    delete models[brands[idx]];
-                    brands[idx] = newName.trim();
-                    saveConfig();
-                }
-            } else if (act === '2') {
-                if (confirm(`確定要刪除品牌「${brands[idx]}」嗎？`)) {
-                    delete models[brands[idx]];
-                    brands.splice(idx, 1);
-                    saveConfig();
-                }
+            if (idx !== -1 && confirm(`確定要刪除品牌「${brands[idx]}」嗎？`)) {
+                delete models[brands[idx]];
+                brands.splice(idx, 1);
+                saveConfig();
             }
         }
 
-        // 新增型號
         function addModel() {
             const bVal = document.getElementById('paintBrandSelect').value;
             if (!bVal) return alert('請先選擇品牌！');
-
-            const newM = prompt(`請輸入品牌【${bVal}】的新品項/型號名稱：`);
+            const newM = prompt(`請輸入【${bVal}】的新品項名稱：`);
             if (newM && newM.trim()) {
-                const name = newM.trim();
                 models[bVal] = models[bVal] || [];
-                if (!models[bVal].includes(name)) {
-                    models[bVal].push(name);
+                if (!models[bVal].includes(newM.trim())) {
+                    models[bVal].push(newM.trim());
                     saveConfig();
                     document.getElementById('paintBrandSelect').value = bVal;
                     onBrandChange();
-                    document.getElementById('paintNameSelect').value = name;
-                } else {
-                    alert('該型號已存在！');
+                    document.getElementById('paintNameSelect').value = newM.trim();
                 }
             }
         }
 
-        // 管理/刪除型號
         function manageModels() {
             const bVal = document.getElementById('paintBrandSelect').value;
             if (!bVal) return alert('請先選擇品牌！');
             const list = models[bVal] || [];
-            if (list.length === 0) return alert('該品牌下目前無型號');
-
-            const target = prompt(`【${bVal}】目前的型號：\n${list.join('、')}\n\n請輸入要修改或刪除的型號名稱：`);
+            const target = prompt(`【${bVal}】型號：\n${list.join('、')}\n\n請輸入要刪除的型號名稱：`);
             if (!target) return;
-
             const idx = list.indexOf(target.trim());
-            if (idx === -1) return alert('找不到該型號！');
-
-            const act = prompt(`針對型號「${list[idx]}」，請選擇操作：\n1. 修改名稱\n2. 刪除型號`);
-            if (act === '1') {
-                const newName = prompt('請輸入新名稱：', list[idx]);
-                if (newName && newName.trim()) {
-                    list[idx] = newName.trim();
-                    saveConfig();
-                    onBrandChange();
-                }
-            } else if (act === '2') {
-                if (confirm(`確定要刪除型號「${list[idx]}」嗎？`)) {
-                    list.splice(idx, 1);
-                    saveConfig();
-                    onBrandChange();
-                }
+            if (idx !== -1 && confirm(`確定刪除型號「${list[idx]}」？`)) {
+                list.splice(idx, 1);
+                saveConfig();
+                onBrandChange();
             }
         }
 
-        // 渲染主頁面看板
         function render() {
             const contentArea = document.getElementById('contentArea');
             const alertBanner = document.getElementById('alertBanner');
             const alertList = document.getElementById('alertList');
-            
-            contentArea.innerHTML = '';
-            alertList.innerHTML = '';
+            contentArea.innerHTML = ''; alertList.innerHTML = '';
             let lowStockItems = [];
 
             if (inventory.length === 0) {
-                contentArea.innerHTML = `<div class="empty-tip">目前尚無庫存資料<br>請點擊右上角「<b>☰</b>」新增進貨</div>`;
+                contentArea.innerHTML = `<div style="text-align:center;padding:40px;background:white;border-radius:12px;margin-top:12px;">目前無資料，點擊右上角「<b>☰</b>」新增進貨</div>`;
                 alertBanner.style.display = 'none';
                 return;
             }
 
-            const cardContainer = document.createElement('div');
-            cardContainer.className = 'card-container';
-
-            const table = document.createElement('table');
-            table.className = 'desktop-table';
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>品牌</th>
-                        <th>油漆品項</th>
-                        <th>最新進貨日期</th>
-                        <th>進貨總量 (A)</th>
-                        <th>現場實點剩餘 (B)</th>
-                        <th>狀態門檻</th>
-                        <th>自動計算使用量 (A - B)</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="desktopTbody"></tbody>
-            `;
-            
+            const cardContainer = document.createElement('div'); cardContainer.className = 'card-container';
+            const table = document.createElement('table'); table.className = 'desktop-table';
+            table.innerHTML = `<thead><tr><th>品牌</th><th>油漆品項</th><th>最新進貨日期</th><th>進貨總量 (A)</th><th>現場實點剩餘 (B)</th><th>狀態門檻</th><th>自動計算使用量 (A - B)</th><th>操作</th></tr></thead><tbody id="desktopTbody"></tbody>`;
             const desktopTbody = table.querySelector('#desktopTbody');
 
             inventory.forEach((item, index) => {
@@ -377,84 +312,48 @@
                 const isLow = item.currentStock <= threshold;
                 const used = item.totalIn - item.currentStock;
 
-                if (isLow) {
-                    lowStockItems.push(`【${item.category} - ${item.name}】剩餘 <b>${item.currentStock}</b> (警戒線：${threshold})`);
-                }
+                if (isLow) lowStockItems.push(`【${item.category} - ${item.name}】剩餘 <b>${item.currentStock}</b> (警戒線：${threshold})`);
 
-                const badgeHtml = isLow 
-                    ? `<span class="badge badge-danger">🔴 偏低 (${item.currentStock}/${threshold})</span>`
-                    : `<span class="badge badge-success">🟢 正常</span>`;
+                const badgeHtml = isLow ? `<span class="badge badge-danger">🔴 偏低 (${item.currentStock}/${threshold})</span>` : `<span class="badge badge-success">🟢 正常</span>`;
 
-                // 手機卡片
-                const card = document.createElement('div');
-                card.className = `paint-card ${isLow ? 'alert-card' : ''}`;
+                const card = document.createElement('div'); card.className = `paint-card ${isLow ? 'alert-card' : ''}`;
                 card.innerHTML = `
-                    <div class="card-header-row">
-                        <span class="card-title">${item.name}</span>
-                        <span class="card-category">品牌: ${item.category}</span>
-                    </div>
+                    <div class="card-header-row"><span class="card-title">${item.name}</span><span class="card-category">品牌: ${item.category}</span></div>
                     <div class="card-grid">
-                        <div class="grid-item">
-                            <span class="grid-label">現場實點剩餘 (B)</span>
-                            <span class="grid-val" style="color: ${isLow ? '#ff4d4f' : '#52c41a'}">${item.currentStock}</span>
-                        </div>
-                        <div class="grid-item">
-                            <span class="grid-label">狀態門檻</span>
-                            <div>${badgeHtml}</div>
-                        </div>
-                        <div class="grid-item">
-                            <span class="grid-label">進貨總量 (A)</span>
-                            <span class="grid-val">${item.totalIn}</span>
-                        </div>
-                        <div class="grid-item">
-                            <span class="grid-label">已使用量 (A-B)</span>
-                            <span class="grid-val" style="color: #ff4d4f">${used < 0 ? '異常' : used}</span>
-                        </div>
+                        <div class="grid-item"><span class="grid-label">現場實點剩餘 (B)</span><span class="grid-val" style="color:${isLow?'#ff4d4f':'#52c41a'}">${item.currentStock}</span></div>
+                        <div class="grid-item"><span class="grid-label">狀態門檻</span><div>${badgeHtml}</div></div>
+                        <div class="grid-item"><span class="grid-label">進貨總量 (A)</span><span class="grid-val">${item.totalIn}</span></div>
+                        <div class="grid-item"><span class="grid-label">已使用量 (A-B)</span><span class="grid-val" style="color:#ff4d4f">${used<0?'異常':used}</span></div>
                     </div>
-                    <div style="font-size: 11px; color: #8c8c8c; margin-bottom: 8px;">最新進貨日期：${item.lastInDate}</div>
+                    <div style="font-size:11px;color:#8c8c8c;margin-bottom:8px;">最新進貨日期：${item.lastInDate}</div>
                     <div class="card-actions">
                         <button class="btn btn-check" onclick="updateStock(${index})">清點</button>
                         <button class="btn btn-edit" onclick="openEditModal(${index})">修改</button>
                         <button class="btn btn-delete" onclick="deleteItem(${index})">刪除</button>
-                    </div>
-                `;
+                    </div>`;
                 cardContainer.appendChild(card);
 
-                // 電腦表格
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${item.category}</td>
-                    <td><b>${item.name}</b></td>
-                    <td>${item.lastInDate}</td>
-                    <td>${item.totalIn}</td>
-                    <td style="color: ${isLow ? 'red' : 'green'}; font-weight: bold;">${item.currentStock}</td>
-                    <td>${badgeHtml}</td>
-                    <td style="color: red; font-weight: bold;">${used < 0 ? '盤點異常' : used}</td>
+                    <td>${item.category}</td><td><b>${item.name}</b></td><td>${item.lastInDate}</td><td>${item.totalIn}</td>
+                    <td style="color:${isLow?'red':'green'};font-weight:bold;">${item.currentStock}</td><td>${badgeHtml}</td>
+                    <td style="color:red;font-weight:bold;">${used<0?'盤點異常':used}</td>
                     <td>
                         <button class="btn btn-check" style="padding:4px 8px" onclick="updateStock(${index})">清點</button>
                         <button class="btn btn-edit" style="padding:4px 8px" onclick="openEditModal(${index})">修改</button>
                         <button class="btn btn-delete" style="padding:4px 8px" onclick="deleteItem(${index})">刪除</button>
-                    </td>
-                `;
+                    </td>`;
                 desktopTbody.appendChild(tr);
             });
 
-            contentArea.appendChild(cardContainer);
-            contentArea.appendChild(table);
+            contentArea.appendChild(cardContainer); contentArea.appendChild(table);
 
             if (lowStockItems.length > 0) {
                 alertBanner.style.display = 'block';
-                lowStockItems.forEach(msg => {
-                    const li = document.createElement('li');
-                    li.innerHTML = msg;
-                    alertList.appendChild(li);
-                });
-            } else {
-                alertBanner.style.display = 'none';
-            }
+                lowStockItems.forEach(msg => { const li = document.createElement('li'); li.innerHTML = msg; alertList.appendChild(li); });
+            } else { alertBanner.style.display = 'none'; }
         }
 
-        // 新增進貨
         document.getElementById('inboundForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const category = document.getElementById('paintBrandSelect').value;
@@ -464,24 +363,14 @@
             const minQty = parseInt(document.getElementById('minQty').value);
 
             const existing = inventory.find(i => i.name === name && i.category === category);
-
             if (existing) {
-                existing.totalIn += qty;
-                existing.currentStock += qty;
-                existing.lastInDate = date;
-                existing.minStock = minQty;
+                existing.totalIn += qty; existing.currentStock += qty; existing.lastInDate = date; existing.minStock = minQty;
             } else {
                 inventory.push({ id: Date.now().toString(), category, name, lastInDate: date, totalIn: qty, currentStock: qty, minStock: minQty });
             }
-
-            saveData();
-            this.reset();
-            document.getElementById('inDate').valueAsDate = new Date();
-            document.getElementById('minQty').value = 10;
-            closeModal('inboundModal');
+            syncToCloud(); closeModal('inboundModal');
         });
 
-        // 開啟修改視窗
         function openEditModal(index) {
             const item = inventory[index];
             document.getElementById('editIndex').value = index;
@@ -490,8 +379,7 @@
             document.getElementById('editInDate').value = item.lastInDate;
             document.getElementById('editTotalIn').value = item.totalIn;
             document.getElementById('editCurrentStock').value = item.currentStock;
-            document.getElementById('editMinStock').value = item.minStock !== undefined ? item.minStock : 10;
-            
+            document.getElementById('editMinStock').value = item.minStock || 10;
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -502,32 +390,27 @@
             inventory[index].totalIn = parseInt(document.getElementById('editTotalIn').value);
             inventory[index].currentStock = parseInt(document.getElementById('editCurrentStock').value);
             inventory[index].minStock = parseInt(document.getElementById('editMinStock').value);
-
-            saveData();
-            closeModal('editModal');
+            syncToCloud(); closeModal('editModal');
         });
 
         function updateStock(index) {
             const item = inventory[index];
             const current = prompt(`請輸入「${item.category} - ${item.name}」現場實際剩餘數量：`, item.currentStock);
-            if (current === null) return;
-            const parsed = parseInt(current);
-            if (!isNaN(parsed) && parsed >= 0) {
-                item.currentStock = parsed;
-                saveData();
-            } else {
-                alert('請輸入正確數字！');
+            if (current !== null && !isNaN(parseInt(current))) {
+                item.currentStock = parseInt(current);
+                syncToCloud();
             }
         }
 
         function deleteItem(index) {
             if (confirm(`確定要刪除「${inventory[index].name}」嗎？`)) {
                 inventory.splice(index, 1);
-                saveData();
+                syncToCloud();
             }
         }
 
-        render();
+        // 頁面開啟時自動拉取雲端資料
+        loadFromCloud();
     </script>
 </body>
 </html>
