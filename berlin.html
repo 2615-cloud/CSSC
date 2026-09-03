@@ -6,67 +6,69 @@
     <title>中鋼構油漆庫存表</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 12px; background-color: #f0f2f5; color: #333; }
-        .header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #003366, #00509e); color: white; padding: 16px 20px; border-radius: 12px; }
-        .header h1 { margin: 0; font-size: 20px; }
-        .menu-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 22px; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 10px; background-color: #f4f6f8; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: #003366; color: white; padding: 12px 16px; border-radius: 8px; }
+        .header h1 { margin: 0; font-size: 18px; }
+        .menu-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 20px; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; }
         
-        .alert-banner { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; padding: 12px 16px; border-radius: 10px; margin: 12px 0; display: none; }
-        .alert-banner h4 { margin: 0 0 6px 0; font-size: 15px; }
-        .alert-banner ul { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.6; }
+        .alert-banner { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; padding: 10px 12px; border-radius: 8px; margin: 10px 0; display: none; font-size: 13px; }
+        .alert-banner h4 { margin: 0 0 4px 0; font-size: 14px; }
+        .alert-banner ul { margin: 0; padding-left: 18px; line-height: 1.5; }
 
-        .card-container { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
-        .paint-card { background: white; border-radius: 12px; padding: 16px; border-left: 5px solid #00509e; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .paint-card.alert-card { border-left-color: #ff4d4f; }
-        .card-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px; }
-        .card-title { font-size: 17px; font-weight: bold; }
-        .card-category { font-size: 12px; background: #e6f7ff; color: #1890ff; padding: 2px 8px; border-radius: 4px; }
+        /* 精簡條列式容器 */
+        .list-container { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        .list-item { background: white; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border-left: 4px solid #00509e; }
+        .list-item.alert-item { border-left-color: #ff4d4f; background-color: #fffbfb; }
         
-        .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 13px; margin-bottom: 12px; }
-        .grid-item { display: flex; flex-direction: column; }
-        .grid-label { color: #8c8c8c; font-size: 11px; }
-        .grid-val { font-size: 15px; font-weight: 600; }
+        .item-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .item-title { font-size: 15px; font-weight: bold; color: #111; }
+        .item-brand { font-size: 11px; background: #e6f7ff; color: #1890ff; padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+        
+        .item-data-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666; background: #fafafa; padding: 6px 8px; border-radius: 6px; margin-bottom: 8px; }
+        .data-tag { font-weight: bold; }
+        .data-tag.stock { font-size: 14px; }
 
-        .card-actions { display: flex; gap: 8px; border-top: 1px solid #f0f0f0; padding-top: 10px; }
-        .card-actions .btn { flex: 1; padding: 8px 0; font-size: 13px; margin: 0; }
+        .item-actions { display: flex; justify-content: space-between; align-items: center; }
+        .item-date { font-size: 11px; color: #999; }
+        .btn-group { display: flex; gap: 6px; }
 
-        .desktop-table { display: none; width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; margin-top: 12px; }
-        .desktop-table th, .desktop-table td { border: 1px solid #f0f0f0; padding: 12px; text-align: center; }
+        .desktop-table { display: none; width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin-top: 10px; font-size: 13px; }
+        .desktop-table th, .desktop-table td { border: 1px solid #f0f0f0; padding: 10px; text-align: center; }
         .desktop-table th { background-color: #003366; color: white; }
 
-        .badge { padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 11px; display: inline-block; }
+        .badge { padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px; display: inline-block; }
         .badge-success { background-color: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
         .badge-danger { background-color: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
 
-        .btn { border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        .btn { border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 12px; padding: 4px 10px; }
         .btn-check { background-color: #52c41a; color: white; }
         .btn-edit { background-color: #faad14; color: white; }
         .btn-delete { background-color: #ff4d4f; color: white; }
-        .btn-submit { background-color: #003366; color: white; width: 100%; padding: 12px; font-size: 15px; margin-top: 12px; }
+        .btn-submit { background-color: #003366; color: white; width: 100%; padding: 10px; font-size: 14px; margin-top: 10px; }
 
         .select-group { display: flex; gap: 6px; }
-        .select-group select { flex: 1; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; background: white; }
-        .btn-add-opt { background: #1890ff; color: white; border: none; padding: 0 12px; border-radius: 6px; font-size: 18px; cursor: pointer; }
-        .btn-manage-opt { background: #f0f0f0; color: #555; border: 1px solid #d9d9d9; padding: 0 10px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+        .select-group select { flex: 1; padding: 8px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; background: white; }
+        .btn-add-opt { background: #1890ff; color: white; border: none; padding: 0 10px; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        .btn-manage-opt { background: #f0f0f0; color: #555; border: 1px solid #d9d9d9; padding: 0 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); justify-content: center; align-items: flex-end; z-index: 1000; }
-        .modal { background: white; padding: 20px; border-radius: 16px 16px 0 0; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 12px; margin-bottom: 16px; }
-        .modal-header h3 { margin: 0; color: #003366; }
-        .close-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: #999; }
+        .modal { background: white; padding: 16px; border-radius: 12px 12px 0 0; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; margin-bottom: 12px; }
+        .modal-header h3 { margin: 0; color: #003366; font-size: 16px; }
+        .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #999; }
 
-        .form-group { margin-bottom: 12px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; color: #444; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; }
+        .form-group { margin-bottom: 10px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 12px; color: #444; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; }
 
         .loading-mask { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.85); display:flex; justify-content:center; align-items:center; font-weight:bold; color:#003366; z-index:2000; }
 
         @media (min-width: 768px) {
-            body { padding: 24px; max-width: 1100px; margin: 0 auto; }
-            .card-container { display: none; }
+            body { padding: 20px; max-width: 1000px; margin: 0 auto; }
+            .list-container { display: none; }
             .desktop-table { display: table; }
             .modal-overlay { align-items: center; }
-            .modal { border-radius: 12px; }
+            .modal { border-radius: 10px; }
         }
     </style>
 </head>
@@ -80,7 +82,7 @@
     </div>
 
     <div class="alert-banner" id="alertBanner">
-        <h4>🚨 庫存偏低警告（建議補貨）</h4>
+        <h4>🚨 庫存偏低警告</h4>
         <ul id="alertList"></ul>
     </div>
 
@@ -142,8 +144,8 @@
             </div>
             <form id="editForm">
                 <input type="hidden" id="editIndex">
-                <div class="form-group"><label>品牌</label><input type="text" id="editCategory" placeholder="輸入品牌名稱" required></div>
-                <div class="form-group"><label>油漆品項/型號</label><input type="text" id="editName" placeholder="輸入型號名稱" required></div>
+                <div class="form-group"><label>品牌</label><input type="text" id="editCategory" required></div>
+                <div class="form-group"><label>油漆品項/型號</label><input type="text" id="editName" required></div>
                 <div class="form-group"><label>最新進貨日期</label><input type="date" id="editInDate" required></div>
                 <div class="form-group"><label>進貨總量 (A)</label><input type="number" id="editTotalIn" min="0" required></div>
                 <div class="form-group"><label>現場實點剩餘 (B)</label><input type="number" id="editCurrentStock" min="0" required></div>
@@ -168,9 +170,7 @@
 
         function formatDate(dateStr) {
             if (!dateStr) return '';
-            if (dateStr.includes('T')) {
-                return dateStr.split('T')[0];
-            }
+            if (dateStr.includes('T')) return dateStr.split('T')[0];
             return dateStr;
         }
 
@@ -313,12 +313,12 @@
             let lowStockItems = [];
 
             if (inventory.length === 0) {
-                contentArea.innerHTML = `<div style="text-align:center;padding:40px;background:white;border-radius:12px;margin-top:12px;">目前無資料，點擊右上角「<b>☰</b>」新增進貨</div>`;
+                contentArea.innerHTML = `<div style="text-align:center;padding:30px;background:white;border-radius:8px;margin-top:10px;">目前無資料，點擊右上角「<b>☰</b>」新增進貨</div>`;
                 alertBanner.style.display = 'none';
                 return;
             }
 
-            const cardContainer = document.createElement('div'); cardContainer.className = 'card-container';
+            const listContainer = document.createElement('div'); listContainer.className = 'list-container';
             const table = document.createElement('table'); table.className = 'desktop-table';
             table.innerHTML = `<thead><tr><th>品牌</th><th>油漆品項</th><th>最新進貨日期</th><th>進貨總量 (A)</th><th>現場實點剩餘 (B)</th><th>狀態門檻</th><th>自動計算使用量 (A - B)</th><th>操作</th></tr></thead><tbody id="desktopTbody"></tbody>`;
             const desktopTbody = table.querySelector('#desktopTbody');
@@ -332,22 +332,30 @@
 
                 const badgeHtml = isLow ? `<span class="badge badge-danger">🔴 偏低 (${item.currentStock}/${threshold})</span>` : `<span class="badge badge-success">🟢 正常</span>`;
 
-                const card = document.createElement('div'); card.className = `paint-card ${isLow ? 'alert-card' : ''}`;
-                card.innerHTML = `
-                    <div class="card-header-row"><span class="card-title">${item.name}</span><span class="card-category">品牌: ${item.category}</span></div>
-                    <div class="card-grid">
-                        <div class="grid-item"><span class="grid-label">現場實點剩餘 (B)</span><span class="grid-val" style="color:${isLow?'#ff4d4f':'#52c41a'}">${item.currentStock}</span></div>
-                        <div class="grid-item"><span class="grid-label">狀態門檻</span><div>${badgeHtml}</div></div>
-                        <div class="grid-item"><span class="grid-label">進貨總量 (A)</span><span class="grid-val">${item.totalIn}</span></div>
-                        <div class="grid-item"><span class="grid-label">已使用量 (A-B)</span><span class="grid-val" style="color:#ff4d4f">${used<0?'異常':used}</span></div>
+                // 精簡條列式手機版單項 HTML
+                const listItem = document.createElement('div'); listItem.className = `list-item ${isLow ? 'alert-item' : ''}`;
+                listItem.innerHTML = `
+                    <div class="item-main">
+                        <div>
+                            <span class="item-title">${item.name}</span>
+                            <span class="item-brand">${item.category}</span>
+                        </div>
+                        <div>${badgeHtml}</div>
                     </div>
-                    <div style="font-size:11px;color:#8c8c8c;margin-bottom:8px;">最新進貨日期：${item.lastInDate}</div>
-                    <div class="card-actions">
-                        <button class="btn btn-check" onclick="updateStock(${index})">清點</button>
-                        <button class="btn btn-edit" onclick="openEditModal(${index})">修改</button>
-                        <button class="btn btn-delete" onclick="deleteItem(${index})">刪除</button>
+                    <div class="item-data-row">
+                        <div>剩餘(B): <span class="data-tag stock" style="color:${isLow?'#ff4d4f':'#52c41a'}">${item.currentStock}</span></div>
+                        <div>進貨(A): <span class="data-tag">${item.totalIn}</span></div>
+                        <div>已用(A-B): <span class="data-tag" style="color:#ff4d4f">${used<0?'異常':used}</span></div>
+                    </div>
+                    <div class="item-actions">
+                        <span class="item-date">進貨日: ${item.lastInDate}</span>
+                        <div class="btn-group">
+                            <button class="btn btn-check" onclick="updateStock(${index})">清點</button>
+                            <button class="btn btn-edit" onclick="openEditModal(${index})">修改</button>
+                            <button class="btn btn-delete" onclick="deleteItem(${index})">刪除</button>
+                        </div>
                     </div>`;
-                cardContainer.appendChild(card);
+                listContainer.appendChild(listItem);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -355,14 +363,14 @@
                     <td style="color:${isLow?'red':'green'};font-weight:bold;">${item.currentStock}</td><td>${badgeHtml}</td>
                     <td style="color:red;font-weight:bold;">${used<0?'盤點異常':used}</td>
                     <td>
-                        <button class="btn btn-check" style="padding:4px 8px" onclick="updateStock(${index})">清點</button>
-                        <button class="btn btn-edit" style="padding:4px 8px" onclick="openEditModal(${index})">修改</button>
-                        <button class="btn btn-delete" style="padding:4px 8px" onclick="deleteItem(${index})">刪除</button>
+                        <button class="btn btn-check" onclick="updateStock(${index})">清點</button>
+                        <button class="btn btn-edit" onclick="openEditModal(${index})">修改</button>
+                        <button class="btn btn-delete" onclick="deleteItem(${index})">刪除</button>
                     </td>`;
                 desktopTbody.appendChild(tr);
             });
 
-            contentArea.appendChild(cardContainer); contentArea.appendChild(table);
+            contentArea.appendChild(listContainer); contentArea.appendChild(table);
 
             if (lowStockItems.length > 0) {
                 alertBanner.style.display = 'block';
@@ -399,7 +407,6 @@
             document.getElementById('editModal').style.display = 'flex';
         }
 
-        // 修改 Form 提交 logic：更新庫存同時更新下拉選項 config
         document.getElementById('editForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const index = document.getElementById('editIndex').value;
@@ -413,14 +420,9 @@
             inventory[index].currentStock = parseInt(document.getElementById('editCurrentStock').value);
             inventory[index].minStock = parseInt(document.getElementById('editMinStock').value);
 
-            // 自動維護選單清單
-            if (!brands.includes(newCat)) {
-                brands.push(newCat);
-            }
+            if (!brands.includes(newCat)) brands.push(newCat);
             models[newCat] = models[newCat] || [];
-            if (!models[newCat].includes(newName)) {
-                models[newCat].push(newName);
-            }
+            if (!models[newCat].includes(newName)) models[newCat].push(newName);
             saveConfig();
 
             syncToCloud(); 
