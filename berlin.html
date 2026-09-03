@@ -168,29 +168,24 @@
             document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
-        // 修正後的日期處理函式：避免時區少一天
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    
-    // 如果是 Date 物件，轉為本地時區的 YYYY-MM-DD
-    if (dateStr instanceof Date) {
-        const y = dateStr.getFullYear();
-        const m = String(dateStr.getMonth() + 1).padStart(2, '0');
-        const d = String(dateStr.getDate()).padStart(2, '0');
-        return `${y}-${m}-${d}`;
-    }
-    
-    // 如果包含 T (例如 2026-09-03T00:00:00.000Z)，先轉為 Date 物件再取本地日期
-    if (typeof dateStr === 'string' && dateStr.includes('T')) {
-        const d = new Date(dateStr);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-    }
-    
-    return String(dateStr).split('T')[0];
-}
+        // 修正時區偏差的日期處理函式
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            if (dateStr instanceof Date) {
+                const y = dateStr.getFullYear();
+                const m = String(dateStr.getMonth() + 1).padStart(2, '0');
+                const d = String(dateStr.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+            if (typeof dateStr === 'string' && dateStr.includes('T')) {
+                const d = new Date(dateStr);
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            }
+            return String(dateStr).split('T')[0];
+        }
 
         function loadFromCloud() {
             showLoading(true);
@@ -249,23 +244,42 @@ function formatDate(dateStr) {
         function openInboundModal() { renderBrandOptions(); document.getElementById('inboundModal').style.display = 'flex'; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
 
+        // 動態渲染所有發生的品牌
         function renderBrandOptions() {
             const bSelect = document.getElementById('paintBrandSelect');
             bSelect.innerHTML = '<option value="">-- 請選擇品牌 --</option>';
-            brands.forEach(b => bSelect.innerHTML += `<option value="${b}">${b}</option>`);
+            let allBrands = new Set([...brands, ...inventory.map(i => i.category)]);
+            allBrands.forEach(b => {
+                if (b) bSelect.innerHTML += `<option value="${b}">${b}</option>`;
+            });
             onBrandChange();
         }
 
+        // 動態根據雲端資料抓取最新型號
         function onBrandChange() {
             const bVal = document.getElementById('paintBrandSelect').value;
             const mSelect = document.getElementById('paintNameSelect');
             mSelect.innerHTML = '';
-            if (!bVal || !models[bVal] || models[bVal].length === 0) {
+            
+            if (!bVal) {
                 mSelect.innerHTML = '<option value="">-- 請先選擇品牌 --</option>';
                 return;
             }
+
+            let availableModels = new Set(models[bVal] || []);
+            inventory.filter(item => item.category === bVal).forEach(item => {
+                if (item.name) availableModels.add(item.name);
+            });
+
+            if (availableModels.size === 0) {
+                mSelect.innerHTML = '<option value="">-- 請先選擇或新增品項 --</option>';
+                return;
+            }
+
             mSelect.innerHTML = '<option value="">-- 請選擇品項 --</option>';
-            models[bVal].forEach(m => mSelect.innerHTML += `<option value="${m}">${m}</option>`);
+            availableModels.forEach(m => {
+                mSelect.innerHTML += `<option value="${m}">${m}</option>`;
+            });
         }
 
         function addBrand() {
@@ -312,15 +326,25 @@ function formatDate(dateStr) {
         function manageModels() {
             const bVal = document.getElementById('paintBrandSelect').value;
             if (!bVal) return alert('請先選擇品牌！');
-            const list = models[bVal] || [];
-            const target = prompt(`【${bVal}】型號：\n${list.join('、')}\n\n請輸入要刪除的型號名稱：`);
+            
+            let availableModels = Array.from(new Set([
+                ...(models[bVal] || []),
+                ...inventory.filter(i => i.category === bVal).map(i => i.name)
+            ]));
+
+            if (availableModels.length === 0) return alert('目前沒有可管理的型號');
+
+            const target = prompt(`【${bVal}】目前型號：\n${availableModels.join('、')}\n\n請輸入要刪除的型號名稱：`);
             if (!target) return;
-            const idx = list.indexOf(target.trim());
-            if (idx !== -1 && confirm(`確定刪除型號「${list[idx]}」？`)) {
-                list.splice(idx, 1);
-                saveConfig();
-                onBrandChange();
+            
+            const cleanTarget = target.trim();
+            if (models[bVal]) {
+                models[bVal] = models[bVal].filter(m => m !== cleanTarget);
             }
+            
+            saveConfig();
+            onBrandChange();
+            alert(`已移除型號「${cleanTarget}」選項！`);
         }
 
         function render() {
@@ -350,7 +374,6 @@ function formatDate(dateStr) {
 
                 const badgeHtml = isLow ? `<span class="badge badge-danger">🔴 偏低 (${item.currentStock}/${threshold})</span>` : `<span class="badge badge-success">🟢 正常</span>`;
 
-                // 精簡條列式手機版單項 HTML
                 const listItem = document.createElement('div'); listItem.className = `list-item ${isLow ? 'alert-item' : ''}`;
                 listItem.innerHTML = `
                     <div class="item-main">
@@ -400,17 +423,29 @@ function formatDate(dateStr) {
             e.preventDefault();
             const category = document.getElementById('paintBrandSelect').value;
             const name = document.getElementById('paintNameSelect').value;
-            const date = document.getElementById('inDate').value;
+            const dateInput = document.getElementById('inDate').value; 
             const qty = parseInt(document.getElementById('inQty').value);
             const minQty = parseInt(document.getElementById('minQty').value);
 
             const existing = inventory.find(i => i.name === name && i.category === category);
             if (existing) {
-                existing.totalIn += qty; existing.currentStock += qty; existing.lastInDate = date; existing.minStock = minQty;
+                existing.totalIn += qty; 
+                existing.currentStock += qty; 
+                existing.lastInDate = dateInput; 
+                existing.minStock = minQty;
             } else {
-                inventory.push({ id: Date.now().toString(), category, name, lastInDate: date, totalIn: qty, currentStock: qty, minStock: minQty });
+                inventory.push({ 
+                    id: Date.now().toString(), 
+                    category, 
+                    name, 
+                    lastInDate: dateInput, 
+                    totalIn: qty, 
+                    currentStock: qty, 
+                    minStock: minQty 
+                });
             }
-            syncToCloud(); closeModal('inboundModal');
+            syncToCloud(); 
+            closeModal('inboundModal');
         });
 
         function openEditModal(index) {
@@ -425,37 +460,35 @@ function formatDate(dateStr) {
             document.getElementById('editModal').style.display = 'flex';
         }
 
-        // 修正後的修改表單提交事件
-document.getElementById('editForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const index = document.getElementById('editIndex').value;
-    const oldCat = inventory[index].category;
-    const oldName = inventory[index].name;
+        // 修改表單提交：同步替換舊選單名稱並上傳雲端
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const index = document.getElementById('editIndex').value;
+            const oldCat = inventory[index].category;
+            const oldName = inventory[index].name;
 
-    const newCat = document.getElementById('editCategory').value.trim();
-    const newName = document.getElementById('editName').value.trim();
+            const newCat = document.getElementById('editCategory').value.trim();
+            const newName = document.getElementById('editName').value.trim();
 
-    // 1. 更新庫存陣列資料
-    inventory[index].category = newCat;
-    inventory[index].name = newName;
-    inventory[index].lastInDate = document.getElementById('editInDate').value;
-    inventory[index].totalIn = parseInt(document.getElementById('editTotalIn').value);
-    inventory[index].currentStock = parseInt(document.getElementById('editCurrentStock').value);
-    inventory[index].minStock = parseInt(document.getElementById('editMinStock').value);
+            inventory[index].category = newCat;
+            inventory[index].name = newName;
+            inventory[index].lastInDate = document.getElementById('editInDate').value;
+            inventory[index].totalIn = parseInt(document.getElementById('editTotalIn').value);
+            inventory[index].currentStock = parseInt(document.getElementById('editCurrentStock').value);
+            inventory[index].minStock = parseInt(document.getElementById('editMinStock').value);
 
-    // 2. 清理與更新下拉選單設定 (刪除舊名稱、加入新名稱)
-    if (models[oldCat]) {
-        models[oldCat] = models[oldCat].filter(m => m !== oldName);
-    }
-    
-    if (!brands.includes(newCat)) brands.push(newCat);
-    models[newCat] = models[newCat] || [];
-    if (!models[newCat].includes(newName)) models[newCat].push(newName);
+            if (models[oldCat]) {
+                models[oldCat] = models[oldCat].filter(m => m !== oldName);
+            }
+            
+            if (!brands.includes(newCat)) brands.push(newCat);
+            models[newCat] = models[newCat] || [];
+            if (!models[newCat].includes(newName)) models[newCat].push(newName);
 
-    saveConfig();
-    syncToCloud(); 
-    closeModal('editModal');
-});
+            saveConfig();
+            syncToCloud(); 
+            closeModal('editModal');
+        });
 
         function updateStock(index) {
             const item = inventory[index];
