@@ -142,8 +142,8 @@
             </div>
             <form id="editForm">
                 <input type="hidden" id="editIndex">
-                <div class="form-group"><label>品牌</label><input type="text" id="editCategory" required readonly style="background:#f5f5f5;"></div>
-                <div class="form-group"><label>油漆品項/型號</label><input type="text" id="editName" required readonly style="background:#f5f5f5;"></div>
+                <div class="form-group"><label>品牌</label><input type="text" id="editCategory" placeholder="輸入品牌名稱" required></div>
+                <div class="form-group"><label>油漆品項/型號</label><input type="text" id="editName" placeholder="輸入型號名稱" required></div>
                 <div class="form-group"><label>最新進貨日期</label><input type="date" id="editInDate" required></div>
                 <div class="form-group"><label>進貨總量 (A)</label><input type="number" id="editTotalIn" min="0" required></div>
                 <div class="form-group"><label>現場實點剩餘 (B)</label><input type="number" id="editCurrentStock" min="0" required></div>
@@ -154,7 +154,6 @@
     </div>
 
     <script>
-        // 填入您的 Apps Script API 網址 (僅需填一次)
         const GOOGLE_SCRIPT_URL = "https://script.google.com/a/macros/berlin.com.tw/s/AKfycby3OvhnMaeEQX1uHcogW99zIOA9YCWWhdUDEsPi6dDc-lBPa0xNpSxIc92doeHgS86GmA/exec";
 
         let inventory = [];
@@ -167,7 +166,14 @@
             document.getElementById('loading').style.display = show ? 'flex' : 'none';
         }
 
-        // 使用 JSONP 穿透 CROS 讀取資料
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            if (dateStr.includes('T')) {
+                return dateStr.split('T')[0];
+            }
+            return dateStr;
+        }
+
         function loadFromCloud() {
             showLoading(true);
             const script = document.createElement('script');
@@ -178,7 +184,7 @@
                     id: String(item.id),
                     category: item.category,
                     name: item.name,
-                    lastInDate: item.lastInDate,
+                    lastInDate: formatDate(item.lastInDate),
                     totalIn: parseInt(item.totalIn) || 0,
                     currentStock: parseInt(item.currentStock) || 0,
                     minStock: parseInt(item.minStock) || 10
@@ -196,7 +202,6 @@
             document.body.appendChild(script);
         }
 
-        // 使用 JSONP 穿透 CROS 寫入/更新試算表
         function syncToCloud() {
             showLoading(true);
             const script = document.createElement('script');
@@ -205,7 +210,7 @@
             window[callbackName] = function(res) {
                 showLoading(false);
                 document.body.removeChild(script);
-                loadFromCloud(); // 重新拉取確認
+                loadFromCloud();
             };
 
             const jsonStr = encodeURIComponent(JSON.stringify(inventory));
@@ -387,21 +392,39 @@
             document.getElementById('editIndex').value = index;
             document.getElementById('editCategory').value = item.category;
             document.getElementById('editName').value = item.name;
-            document.getElementById('editInDate').value = item.lastInDate;
+            document.getElementById('editInDate').value = formatDate(item.lastInDate);
             document.getElementById('editTotalIn').value = item.totalIn;
             document.getElementById('editCurrentStock').value = item.currentStock;
             document.getElementById('editMinStock').value = item.minStock || 10;
             document.getElementById('editModal').style.display = 'flex';
         }
 
+        // 修改 Form 提交 logic：更新庫存同時更新下拉選項 config
         document.getElementById('editForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const index = document.getElementById('editIndex').value;
+            const newCat = document.getElementById('editCategory').value.trim();
+            const newName = document.getElementById('editName').value.trim();
+
+            inventory[index].category = newCat;
+            inventory[index].name = newName;
             inventory[index].lastInDate = document.getElementById('editInDate').value;
             inventory[index].totalIn = parseInt(document.getElementById('editTotalIn').value);
             inventory[index].currentStock = parseInt(document.getElementById('editCurrentStock').value);
             inventory[index].minStock = parseInt(document.getElementById('editMinStock').value);
-            syncToCloud(); closeModal('editModal');
+
+            // 自動維護選單清單
+            if (!brands.includes(newCat)) {
+                brands.push(newCat);
+            }
+            models[newCat] = models[newCat] || [];
+            if (!models[newCat].includes(newName)) {
+                models[newCat].push(newName);
+            }
+            saveConfig();
+
+            syncToCloud(); 
+            closeModal('editModal');
         });
 
         function updateStock(index) {
